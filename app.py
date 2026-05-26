@@ -1054,7 +1054,7 @@ def create_app():
             c = Course(title="Python 数据分析基础")
             db.session.add(c)
             db.session.commit()
-            ch1 = Chapter(course_id=c.id, title="1.1 环境搭建与安装", video_url="videos/demo.mp4")
+            ch1 = Chapter(course_id=c.id, title="1.1 搭建与安装", video_url="videos/demo.mp4")
             db.session.add(ch1)
             db.session.commit()
 
