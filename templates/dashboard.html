@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>个人学习数据分析</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card-header { background-color: #fff; border-bottom: 1px solid #f0f0f0; }
+    </style>
+</head>
+<body>
+    <div class="container mt-4 pb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark mb-0">
+                <i class="bi bi-bar-chart-fill text-primary me-2"></i>个人学习数据分析
+            </h3>
+            <a href="/" class="btn btn-secondary shadow-sm">返回首页</a>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header fw-bold py-3">📈 学习时长趋势 (分钟)</div>
+                    <div class="card-body">
+                        <div id="lineChart" style="height: 350px; width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header fw-bold py-3">🎯 知识掌握能力雷达 (各科投入分布)</div>
+                    <div class="card-body">
+                        <div id="radarChart" style="height: 350px; width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm border-top border-info border-5">
+            <div class="card-header d-flex justify-content-between align-items-center py-3">
+                <span class="fw-bold text-info fs-5">
+                    <i class="bi bi-lightbulb-fill text-warning me-1"></i> AI 学情简报
+                </span>
+
+                <div class="d-flex align-items-center">
+                    <select id="reportCourse" class="form-select form-select-sm me-2 shadow-sm" style="width: auto;">
+                        <option value="all">综合诊断 (全科)</option>
+                        {% for c in courses %}
+                            <option value="{{ c.id }}">专项诊断: {{ c.title }}</option>
+                        {% endfor %}
+                    </select>
+                    <button id="aiReportBtn" class="btn btn-info text-white fw-bold shadow-sm">
+                        ✨ 深度分析
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body" id="reportContent" style="min-height: 120px; line-height: 1.8;">
+                {% for suggestion in suggestions %}
+                    <p class="mb-3 pb-2 border-bottom text-dark">
+                        {{ suggestion }}
+                    </p>
+                {% else %}
+                    <p class="text-muted">暂无学习数据，请先前往学习课程。</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. 折线图
+            var lineChart = echarts.init(document.getElementById('lineChart'));
+            var lineOption = {
+                tooltip: { trigger: 'axis', formatter: '{b} <br/>专注时长: <strong>{c}</strong> 分钟' },
+                grid: { left: '3%', right: '4%', bottom: '5%', containLabel: true },
+                xAxis: { type: 'category', boundaryGap: false, data: {{ dates | tojson }} },
+                yAxis: { type: 'value', name: '分钟', splitLine: { lineStyle: { type: 'dashed' } } },
+                series: [{
+                    data: {{ daily_durations | tojson }}, type: 'line', smooth: true,
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(84,112,198,0.5)' },
+                            { offset: 1, color: 'rgba(84,112,198,0.1)' }
+                        ])
+                    },
+                    itemStyle: { color: '#5470C6' }, lineStyle: { width: 3 }
+                }]
+            };
+            lineChart.setOption(lineOption);
+
+            // 2. 雷达图
+            var radarChart = echarts.init(document.getElementById('radarChart'));
+            var pieData = {{ pie_data | tojson }};
+            var maxVal = Math.max(...pieData.map(d => d.value)) * 1.2 || 10;
+            var indicator = pieData.map(item => ({ name: item.name, max: maxVal }));
+            var values = pieData.map(item => item.value);
+
+            var radarOption = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function(params) {
+                        let res = '<strong>各科学习投入 (分钟)</strong><br/>';
+                        pieData.forEach(item => {
+                            res += `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:#5470C6"></span>${item.name} : <strong>${item.value}</strong> 分钟<br/>`;
+                        });
+                        return res;
+                    }
+                },
+                radar: {
+                    indicator: indicator.length > 0 ? indicator : [{name: '暂无数据', max: 10}],
+                    shape: 'circle', splitArea: { areaStyle: { color: ['#f8f9fa', '#fff'] } }
+                },
+                series: [{
+                    type: 'radar', data: [{ value: values, name: '投入分布' }],
+                    areaStyle: { color: 'rgba(84,112,198,0.3)' }, itemStyle: { color: '#5470C6' }
+                }]
+            };
+            radarChart.setOption(radarOption);
+
+            window.addEventListener('resize', function() { lineChart.resize(); radarChart.resize(); });
+
+            // 3. AI 学情诊断交互 (获取选定的科目ID)
+            document.getElementById('aiReportBtn').addEventListener('click', function() {
+                const btn = this;
+                const contentDiv = document.getElementById('reportContent');
+                const courseId = document.getElementById('reportCourse').value;
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 思考中...';
+
+                fetch('/ask_ai_tutor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ course_id: courseId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        contentDiv.innerHTML = `
+                            <div class="alert alert-success border-0 shadow-sm mb-0">
+                                <h6 class="alert-heading fw-bold"><i class="bi bi-robot"></i> 智能导师简报：</h6>
+                                <hr>
+                                <div style="font-size: 0.95rem;">${data.advice}</div>
+                            </div>`;
+                    } else {
+                        contentDiv.innerHTML += `<div class="alert alert-danger mt-3 border-0 shadow-sm"><i class="bi bi-exclamation-triangle-fill"></i> ${data.msg}</div>`;
+                    }
+                })
+                .catch(err => {
+                    alert('网络请求失败，请检查网络连接');
+                })
+                .finally(() => {
+                    btn.innerHTML = '✨ 深度分析';
+                    btn.disabled = false;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

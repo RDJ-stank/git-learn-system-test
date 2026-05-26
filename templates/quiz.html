@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>随堂测验 - {{ chapter.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5 mb-5">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">📝 随堂测验: {{ chapter.title }}</h4>
+                <a href="/course/{{ course.id }}?chapter_id={{ chapter.id }}" class="btn btn-sm btn-outline-dark">放弃并返回</a>
+            </div>
+            <div class="card-body">
+                {% if questions %}
+                    <form action="/submit_quiz/chapter/{{ chapter.id }}" method="POST">
+                        {% for q in questions %}
+                        <div class="mb-4 p-3 border rounded bg-white">
+                            <p class="fw-bold mb-3">{{ loop.index }}. {{ q.content }}</p>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="q_{{ q.id }}" value="A" id="q{{ q.id }}_a" required>
+                                <label class="form-check-label" for="q{{ q.id }}_a">A. {{ q.option_a }}</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="q_{{ q.id }}" value="B" id="q{{ q.id }}_b" required>
+                                <label class="form-check-label" for="q{{ q.id }}_b">B. {{ q.option_b }}</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="q_{{ q.id }}" value="C" id="q{{ q.id }}_c" required>
+                                <label class="form-check-label" for="q{{ q.id }}_c">C. {{ q.option_c }}</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="q_{{ q.id }}" value="D" id="q{{ q.id }}_d" required>
+                                <label class="form-check-label" for="q{{ q.id }}_d">D. {{ q.option_d }}</label>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">🚀 提交试卷 (AI 分析)</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="text-center py-5">
+                        <h4 class="text-muted">🤔 本章节暂无测验题目</h4>
+                        <p>请联系老师添加题目。</p>
+                        <a href="/course/{{ course.id }}?chapter_id={{ chapter.id }}" class="btn btn-secondary">返回学习</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

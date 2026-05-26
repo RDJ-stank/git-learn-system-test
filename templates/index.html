@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>智能辅助学习系统 - 首页</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        .timeline { border-left: 2px solid #e9ecef; padding-left: 1.5rem; margin-left: 0.5rem; }
+        .timeline-item { position: relative; margin-bottom: 1.5rem; }
+        .timeline-item::before {
+            content: ''; position: absolute; left: -1.85rem; top: 0.25rem;
+            width: 12px; height: 12px; border-radius: 50%; background-color: #0d6efd;
+        }
+        .bg-light-primary { background-color: #e7f1ff; }
+        .bg-light-success { background-color: #d1e7dd; }
+        .bg-light-warning { background-color: #fff3cd; }
+        .note-card { background-color: #fffdf5; border-left: 4px solid #ffc107; }
+
+        .custom-option { cursor: pointer; display: block; padding: 12px; margin-bottom: 8px; border: 1px solid #dee2e6; border-radius: 5px; transition: 0.2s; font-size: 0.95rem; }
+        .custom-option:hover { background-color: #f8f9fa; border-color: #0d6efd; }
+        input[type="radio"]:checked + .custom-option { background-color: #e7f1ff; border-color: #0d6efd; font-weight: bold; }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">🎓 智能辅助学习系统</a>
+            <div class="d-flex text-white align-items-center">
+                <span class="me-3"><i class="bi bi-person-circle"></i> 欢迎, {{ username }}</span>
+                <a href="/logout" class="btn btn-sm btn-outline-light">退出</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 pb-5">
+        <div class="row">
+            <div class="col-lg-8">
+
+                <div class="row mb-3">
+                    <div class="col-md-4 mb-2">
+                        <div class="card border-0 shadow-sm bg-light-primary h-100">
+                            <div class="card-body text-center py-4">
+                                <h6 class="text-primary fw-bold mb-2"><i class="bi bi-clock-history"></i> 今日专注时长</h6>
+                                <h2 class="mb-0 text-dark fw-bold">{{ today_duration }} <small class="fs-6 text-muted">分钟</small></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="card border-0 shadow-sm bg-light-warning h-100">
+                            <div class="card-body text-center py-4">
+                                <h6 class="text-warning text-darken fw-bold mb-2"><i class="bi bi-journal-x"></i> 待攻克错题</h6>
+                                <h2 class="mb-0 text-dark fw-bold">{{ total_mistakes }} <small class="fs-6 text-muted">题</small></h2>
+                                {% if total_mistakes > 0 %}
+                                    <a href="/my_mistakes" class="stretched-link text-decoration-none small">去复习 &rarr;</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="card border-0 shadow-sm bg-light-success h-100">
+                            <div class="card-body text-center py-4">
+                                <h6 class="text-success fw-bold mb-2"><i class="bi bi-robot"></i> AI 学情分析</h6>
+                                <p class="small text-muted mb-2">基于行为深度诊断</p>
+                                <a href="/dashboard" class="btn btn-sm btn-success rounded-pill fw-bold">查看报表</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4 bg-white rounded">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0">
+                                <i class="bi bi-bullseye text-danger"></i> 本周自主学习目标
+                                <button class="btn btn-sm btn-link text-muted p-0 ms-2" onclick="setWeeklyGoal()" title="修改目标"><i class="bi bi-pencil-square"></i></button>
+                            </h6>
+                            <span class="small fw-bold text-primary">{{ weekly_duration }} <span class="text-muted fw-normal">/ {{ weekly_goal }} 分钟</span></span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: {{ weekly_progress }}%"></div>
+                        </div>
+                        <p class="small text-muted mt-2 mb-0">
+                            {% if weekly_progress >= 100 %}
+                                🎉 太棒了！您已完成本周的自主学习目标，继续保持！
+                            {% else %}
+                                💪 离本周目标还差 {{ weekly_goal - weekly_duration }} 分钟，合理规划时间，向着目标前进！
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4 bg-white rounded border-top border-warning border-4">
+                    <div class="card-header bg-white pt-3 pb-0 border-bottom-0">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-robot text-primary"></i> AI 专属试卷生成站</h5>
+                        <p class="small text-muted mt-2 mb-2">选择科目并输入复习诉求，AI 将为您秒级组卷！答错的题目会智能归类到该科目的错题大厅中。</p>
+                    </div>
+                    <div class="card-body pt-2">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4 d-flex flex-column gap-2">
+                                <select id="customQuizCourse" class="form-select border-primary shadow-sm h-100">
+                                    {% for c in courses %}
+                                        <option value="{{ c.id }}">{{ c.title }}</option>
+                                    {% else %}
+                                        <option value="">暂无可用课程</option>
+                                    {% endfor %}
+                                </select>
+
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text bg-white border-primary border-end-0 text-muted"><i class="bi bi-123"></i></span>
+                                    <input type="number" id="customQuizNum" class="form-control border-primary border-start-0 ps-0" placeholder="出几道题? (1-10)" value="3" min="1" max="10">
+                                    <span class="input-group-text bg-white border-primary">题</span>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <textarea id="aiQuizReq" class="form-control border-primary shadow-sm h-100" rows="3" placeholder="例如：重点考察循环结构，题目稍微偏难一点..."></textarea>
+                            </div>
+                        </div>
+                        <button id="generateCustomBtn" class="btn btn-warning w-100 fw-bold shadow-sm mb-2 py-2">
+                            <i class="bi bi-lightning-charge-fill"></i> 点击，召唤 AI 为我出题！
+                        </button>
+
+                        <div id="customQuizContainer" class="mt-4"></div>
+                    </div>
+                </div>
+
+                {% if last_studied_chapter %}
+                <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(to right, #fdfbfb, #ebedee);">
+                    <div class="card-body d-flex justify-content-between align-items-center rounded">
+                        <div>
+                            <span class="badge bg-primary mb-1">上次学到</span>
+                            <h5 class="fw-bold mb-0 text-dark">{{ last_studied_course.title }}</h5>
+                            <p class="text-muted small mb-0 mt-1"><i class="bi bi-bookmark-check"></i> 正在学习: {{ last_studied_chapter.title }}</p>
+                        </div>
+                        <a href="/course/{{ last_studied_course.id }}?chapter_id={{ last_studied_chapter.id }}" class="btn btn-primary fw-bold px-4 shadow-sm">
+                            <i class="bi bi-play-fill"></i> 继续学习
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <h5 class="fw-bold mb-3 mt-2"><i class="bi bi-pen text-success"></i> 温故知新：我的近期笔记</h5>
+                <div class="row g-3 mb-4">
+                    {% for note in recent_notes_data %}
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100 note-card">
+                            <div class="card-body p-3">
+                                <div class="small text-muted mb-2 d-flex justify-content-between border-bottom pb-2">
+                                    <span class="text-truncate me-2"><i class="bi bi-journal-bookmark"></i> {{ note.course_name }}</span>
+                                    <span>{{ note.time }}</span>
+                                </div>
+                                <p class="mb-0 text-dark small" style="font-style: italic; line-height: 1.6;">" {{ note.content }} "</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12 text-center py-4 text-muted bg-white rounded shadow-sm">
+                        <i class="bi bi-journal-x fs-2 opacity-50"></i>
+                        <p class="mt-2 small mb-0">暂无学习笔记。在观看视频时随时记录重点，系统会在这里为您展示复习卡片哦。</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <h5 class="fw-bold mb-3"><i class="bi bi-collection-play text-info"></i> 全部课程体系</h5>
+                <div class="row g-3">
+                    {% for course in courses %}
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold text-dark mb-1">{{ course.title }}</h5>
+                                <span class="badge bg-info text-white mb-3">{{ course.content_type }}</span>
+
+                                <p class="small text-muted mb-1 d-flex justify-content-between">
+                                    <span>学习进度</span>
+                                    <span class="fw-bold">{{ course_progress[course.id] }}%</span>
+                                </p>
+                                <div class="progress mb-3" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ course_progress[course.id] }}%"></div>
+                                </div>
+
+                                <a href="/course/{{ course.id }}" class="btn btn-outline-primary w-100 fw-bold btn-sm">
+                                    进入课程 &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12 text-center py-5 text-muted bg-white rounded shadow-sm">
+                        <p class="mt-2 mb-0">目前还没有发布的课程哦。</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-lg-4 mt-4 mt-lg-0">
+                <div class="card border-0 shadow-sm h-100 bg-white">
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-activity text-primary"></i> 学习行为足迹</h6>
+                        <small class="text-muted">行为分析引擎实时记录</small>
+                    </div>
+                    <div class="card-body pt-2">
+                        {% if footprints %}
+                            <div class="timeline mt-2">
+                                {% for foot in footprints %}
+                                <div class="timeline-item">
+                                    <div class="small text-muted fw-bold mb-1" style="font-size: 0.8rem;">{{ foot.time }}</div>
+                                    <div class="text-dark small bg-light p-2 rounded border">
+                                        <i class="bi {{ foot.icon }} text-{{ foot.color }} me-1"></i>
+                                        {{ foot.text }}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-cup-hot fs-2 opacity-50"></i>
+                                <p class="small mt-2 mb-0">暂无活动记录，赶快开始学习吧！</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function setWeeklyGoal() {
+            let currentGoal = {{ weekly_goal }};
+            let newGoal = prompt("🎯 请设定您本周的自主学习目标（单位：分钟）\n合理的目标有助于提升学习效率：", currentGoal);
+
+            if (newGoal !== null) {
+                let parsedGoal = parseInt(newGoal);
+                if (!isNaN(parsedGoal) && parsedGoal > 0) {
+                    fetch('/update_weekly_goal', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ goal: parsedGoal })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') { location.reload(); }
+                        else { alert("设置失败，请稍后重试。"); }
+                    });
+                } else {
+                    alert("请输入大于 0 的有效数字！");
+                }
+            }
+        }
+
+        // 首页级 AI 组卷引擎调度中心 (获取手动输入的题数并防呆校验)
+        document.addEventListener('DOMContentLoaded', function() {
+            const genBtn = document.getElementById('generateCustomBtn');
+            const quizContainer = document.getElementById('customQuizContainer');
+
+            if(genBtn) {
+                genBtn.addEventListener('click', function() {
+                    const courseId = document.getElementById('customQuizCourse').value;
+                    const reqText = document.getElementById('aiQuizReq').value;
+                    // 获取手动输入的题数
+                    const numQs = document.getElementById('customQuizNum').value;
+
+                    if(!courseId) { alert('请先选择一门课程！'); return; }
+
+                    // 前端防呆校验：限制在 1-10 题之间，防止用户乱填导致浏览器卡死或大模型超时
+                    if(!numQs || numQs < 1 || numQs > 10) {
+                        alert('⚠️ 为了保证 AI 生成的速度和质量，题目数量请控制在 1 到 10 之间哦！');
+                        return;
+                    }
+
+                    genBtn.disabled = true;
+                    genBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 组卷引擎高速运算中，请稍候...';
+                    quizContainer.innerHTML = '';
+
+                    fetch('/api/student_generate_quiz', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            course_id: courseId,
+                            requirements: reqText,
+                            num_questions: numQs
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.status === 'success') {
+                            let html = `<form action="/submit_custom_quiz/${data.course_id}" method="POST">
+                                        <div class="alert alert-success border-0 shadow-sm py-3 mb-4">
+                                            <h5 class="alert-heading fw-bold mb-1"><i class="bi bi-check-circle-fill"></i> 专属试卷已就绪（共 ${data.questions.length} 题）！</h5>
+                                            <span class="small">答题结束后，错题会自动录入该科目的专属错题本中。</span>
+                                        </div>`;
+
+                            data.questions.forEach((q, idx) => {
+                                html += `<div class="mb-4 pb-3 border-bottom">
+                                            <h5 class="fw-bold text-dark mb-3"><span class="text-primary me-2">${idx + 1}.</span> ${q.content}</h5>
+                                            <div class="row g-2 px-3">`;
+
+                                html += `<div class="col-md-6"><div class="form-check p-0">
+                                            <input class="form-check-input d-none" type="radio" name="q_${q.id}" id="q_${q.id}_a" value="A" required>
+                                            <label class="form-check-label custom-option shadow-sm" for="q_${q.id}_a"><strong>A.</strong> ${q.option_a}</label>
+                                         </div></div>`;
+                                html += `<div class="col-md-6"><div class="form-check p-0">
+                                            <input class="form-check-input d-none" type="radio" name="q_${q.id}" id="q_${q.id}_b" value="B">
+                                            <label class="form-check-label custom-option shadow-sm" for="q_${q.id}_b"><strong>B.</strong> ${q.option_b}</label>
+                                         </div></div>`;
+                                if (q.option_c !== '-') {
+                                    html += `<div class="col-md-6"><div class="form-check p-0">
+                                                <input class="form-check-input d-none" type="radio" name="q_${q.id}" id="q_${q.id}_c" value="C">
+                                                <label class="form-check-label custom-option shadow-sm" for="q_${q.id}_c"><strong>C.</strong> ${q.option_c}</label>
+                                             </div></div>`;
+                                }
+                                if (q.option_d !== '-') {
+                                    html += `<div class="col-md-6"><div class="form-check p-0">
+                                                <input class="form-check-input d-none" type="radio" name="q_${q.id}" id="q_${q.id}_d" value="D">
+                                                <label class="form-check-label custom-option shadow-sm" for="q_${q.id}_d"><strong>D.</strong> ${q.option_d}</label>
+                                             </div></div>`;
+                                }
+                                html += `</div></div>`;
+                            });
+
+                            html += `<div class="text-center mt-4">
+                                        <button type="submit" class="btn btn-warning btn-lg w-50 fw-bold shadow rounded-pill"><i class="bi bi-cursor-fill"></i> 提交试卷，开始智能结算</button>
+                                     </div></form>`;
+                            quizContainer.innerHTML = html;
+                        } else {
+                            quizContainer.innerHTML = `<div class="alert alert-danger small border-0"><i class="bi bi-exclamation-triangle-fill"></i> ${data.msg}</div>`;
+                        }
+                    })
+                    .catch(err => {
+                        quizContainer.innerHTML = `<div class="alert alert-danger small border-0">网络请求异常，请检查网络后重试。</div>`;
+                    })
+                    .finally(() => {
+                        genBtn.disabled = false;
+                        genBtn.innerHTML = '<i class="bi bi-lightning-charge-fill"></i> 重新生成试卷';
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

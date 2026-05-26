@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>错题重做: {{ course.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        .quiz-card { border-left: 4px solid #ffc107; transition: transform 0.2s; }
+        .quiz-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .option-label { cursor: pointer; display: block; padding: 10px; border: 1px solid #dee2e6; border-radius: 5px; transition: all 0.2s; }
+        .option-label:hover { background-color: #f8f9fa; border-color: #ffc107; }
+        input[type="radio"]:checked + .option-label { background-color: #fff3cd; border-color: #ffc107; font-weight: bold; }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <span class="navbar-brand fw-bold"><i class="bi bi-pencil-square text-warning"></i> 错题重做: {{ course.title }}</span>
+            <a href="/my_mistakes" class="btn btn-sm btn-outline-light">🔙 取消重做</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4 pb-5">
+        <div class="alert alert-info border-0 shadow-sm d-flex align-items-center">
+            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+            <div>
+                <strong>🎯 专项突破检测：</strong> 本次测试包含《{{ course.title }}》科目下的 <b>{{ questions|length }}</b> 道错题。如果您能在本次测验中选对，系统将自动把它们从错题本中移除。祝您好运！
+            </div>
+        </div>
+
+        <form action="/submit_redo_mistakes/{{ course.id }}" method="POST">
+            <div class="row g-4 mt-2">
+                {% for q in questions %}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm quiz-card">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-4" style="line-height: 1.5;">
+                                <span class="text-warning me-1">{{ loop.index }}.</span> {{ q.content }}
+                            </h5>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input d-none" type="radio" name="q_{{ q.id }}" id="q_{{ q.id }}_a" value="A" required>
+                                        <label class="form-check-label option-label" for="q_{{ q.id }}_a">
+                                            <strong>A.</strong> {{ q.option_a }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input d-none" type="radio" name="q_{{ q.id }}" id="q_{{ q.id }}_b" value="B">
+                                        <label class="form-check-label option-label" for="q_{{ q.id }}_b">
+                                            <strong>B.</strong> {{ q.option_b }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% if q.option_c != '-' %}
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input d-none" type="radio" name="q_{{ q.id }}" id="q_{{ q.id }}_c" value="C">
+                                        <label class="form-check-label option-label" for="q_{{ q.id }}_c">
+                                            <strong>C.</strong> {{ q.option_c }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if q.option_d != '-' %}
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input d-none" type="radio" name="q_{{ q.id }}" id="q_{{ q.id }}_d" value="D">
+                                        <label class="form-check-label option-label" for="q_{{ q.id }}_d">
+                                            <strong>D.</strong> {{ q.option_d }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-center mt-5">
+                <button type="submit" class="btn btn-warning btn-lg fw-bold px-5 shadow-sm rounded-pill">
+                    <i class="bi bi-cursor-fill"></i> 提交试卷，开始结算
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

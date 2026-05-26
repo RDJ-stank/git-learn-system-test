@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>测验结果</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        .result-card { border-radius: 8px; overflow: hidden; border: 1px solid #e9ecef; }
+        .option-box { padding: 10px; margin-bottom: 5px; border-radius: 5px; border: 1px solid transparent; }
+        .option-correct { background-color: #d1e7dd; border-color: #badbcc; color: #0f5132; font-weight: bold; }
+        .option-wrong { background-color: #f8d7da; border-color: #f5c2c7; color: #842029; font-weight: bold; }
+        .option-normal { background-color: #f8f9fa; border-color: #dee2e6; color: #495057; }
+        .ai-analysis-box { background-color: #f0f7ff; border-radius: 8px; border-left: 3px solid #0d6efd; display: none; margin-top: 15px; }
+    </style>
+</head>
+<body class="bg-light pb-5">
+    <nav class="navbar navbar-dark bg-dark shadow-sm">
+        <div class="container-fluid px-xl-5 px-lg-4">
+            <span class="navbar-brand fw-bold"><i class="bi bi-file-earmark-check"></i> 测验结果</span>
+            {% if course %}
+                <a href="/course/{{ course.id }}" class="btn btn-sm btn-outline-light">🔙 结束并返回</a>
+            {% else %}
+                <a href="/" class="btn btn-sm btn-outline-light">🔙 返回首页</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body text-center py-5">
+                <h2 class="fw-bold mb-3">您的得分：<span class="text-primary display-4">{{ score }}</span> / {{ total }}</h2>
+                {% if score == total %}
+                    <p class="text-success fs-5 fw-bold"><i class="bi bi-emoji-sunglasses"></i> 完美！全对，知识点掌握得很扎实！</p>
+                {% else %}
+                    <p class="text-danger fs-5"><i class="bi bi-exclamation-triangle"></i> 有错漏哦！答错的题目已经自动收录到【我的错题本】中，别忘了复习。</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <h4 class="fw-bold mb-3">📝 答题明细：</h4>
+
+        {% for item in result_details %}
+        {% set q = item.question %}
+        <div class="card border-0 shadow-sm mb-4 result-card">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0">
+                    <span class="me-2">{{ loop.index }}.</span> {{ q.content }}
+                </h6>
+                {% if item.is_correct %}
+                    <span class="badge bg-success fs-6"><i class="bi bi-check-lg"></i> 正确</span>
+                {% else %}
+                    <span class="badge bg-danger fs-6"><i class="bi bi-x-lg"></i> 错误</span>
+                {% endif %}
+            </div>
+
+            <div class="card-body bg-light">
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="option-box {% if q.correct_answer == 'A' %}option-correct{% elif item.user_answer == 'A' and not item.is_correct %}option-wrong{% else %}option-normal{% endif %}">
+                            <strong>A.</strong> {{ q.option_a }}
+                        </div>
+                        <div class="option-box {% if q.correct_answer == 'B' %}option-correct{% elif item.user_answer == 'B' and not item.is_correct %}option-wrong{% else %}option-normal{% endif %}">
+                            <strong>B.</strong> {{ q.option_b }}
+                        </div>
+                        {% if q.option_c != '-' %}
+                        <div class="option-box {% if q.correct_answer == 'C' %}option-correct{% elif item.user_answer == 'C' and not item.is_correct %}option-wrong{% else %}option-normal{% endif %}">
+                            <strong>C.</strong> {{ q.option_c }}
+                        </div>
+                        {% endif %}
+                        {% if q.option_d != '-' %}
+                        <div class="option-box {% if q.correct_answer == 'D' %}option-correct{% elif item.user_answer == 'D' and not item.is_correct %}option-wrong{% else %}option-normal{% endif %}">
+                            <strong>D.</strong> {{ q.option_d }}
+                        </div>
+                        {% endif %}
+
+                        <div class="mt-3 small">
+                            您的答案：<strong class="{% if item.is_correct %}text-success{% else %}text-danger{% endif %}">{{ item.user_answer }}</strong>
+                            <span class="mx-2">|</span>
+                            正确答案：<strong class="text-success">{{ q.correct_answer }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5 border-start">
+                        <button class="btn btn-outline-primary w-100 fw-bold ai-btn"
+                                data-qid="{{ q.id }}"
+                                data-question="{{ q.content }}"
+                                data-options="A:{{ q.option_a }} B:{{ q.option_b }} C:{{ q.option_c }} D:{{ q.option_d }}"
+                                data-userans="{{ item.user_answer }}"
+                                data-answer="{{ q.correct_answer }}">
+                            <i class="bi bi-robot"></i> AI 帮我分析这道题
+                        </button>
+
+                        <div class="ai-analysis-box p-3 shadow-sm" id="ai-result-{{ q.id }}">
+                            <div class="d-flex align-items-center mb-2 border-bottom pb-2">
+                                <i class="bi bi-stars text-primary fs-5 me-2"></i>
+                                <strong class="text-primary">智能解析与归因：</strong>
+                            </div>
+                            <div class="text-dark small content-box" style="line-height: 1.6; text-align: justify;">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="text-center mt-5">
+            {% if course %}
+                <a href="/course/{{ course.id }}" class="btn btn-primary btn-lg fw-bold px-5 shadow rounded-pill">返回《{{ course.title }}》继续学习</a>
+            {% else %}
+                <a href="/" class="btn btn-primary btn-lg fw-bold px-5 shadow rounded-pill">完成测评，返回主页</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 为结算页的 AI 解析按钮绑定事件
+        document.querySelectorAll('.ai-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const qid = this.getAttribute('data-qid');
+                const question = this.getAttribute('data-question');
+                const options = this.getAttribute('data-options');
+                const answer = this.getAttribute('data-answer');
+                const userAns = this.getAttribute('data-userans');
+
+                const resultBox = document.getElementById('ai-result-' + qid);
+                const contentBox = resultBox.querySelector('.content-box');
+
+                if (resultBox.style.display === 'none' || resultBox.style.display === '') {
+                    resultBox.style.display = 'block';
+                    contentBox.innerHTML = '<span class="spinner-border spinner-border-sm text-primary" role="status"></span> 大模型深度分析中，请稍候...';
+                    this.disabled = true;
+
+                    fetch('/api/analyze_question', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            question: question,
+                            options: options,
+                            user_answer: userAns,
+                            correct_answer: answer
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            contentBox.innerHTML = data.analysis.replace(/\n/g, '<br>');
+                        } else {
+                            contentBox.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> ' + data.msg + '</span>';
+                        }
+                    })
+                    .catch(err => {
+                        contentBox.innerHTML = '<span class="text-danger">网络出错，请检查后重试。</span>';
+                    })
+                    .finally(() => {
+                        this.disabled = false;
+                        this.innerHTML = '<i class="bi bi-arrow-clockwise"></i> 重新分析';
+                    });
+                } else {
+                    resultBox.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

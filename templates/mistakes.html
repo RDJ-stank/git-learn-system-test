@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>我的错题本大厅 - 智能辅助学习</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        .course-card { transition: all 0.3s ease; border-top: 4px solid #0d6efd; }
+        .course-card:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <span class="navbar-brand fw-bold"><i class="bi bi-journal-x text-danger"></i> 我的错题本大厅</span>
+            <a href="/" class="btn btn-sm btn-outline-light">🔙 返回首页</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4 pb-5">
+        <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center">
+            <i class="bi bi-megaphone-fill fs-4 text-danger me-3"></i>
+            <div>
+                <strong>温馨提示：</strong> 你目前全局一共有 <span class="text-danger fs-5 fw-bold">{{ total_count }}</span> 道错题。请点击下方对应的课程区块，进行靶向突破与专项重做！
+            </div>
+        </div>
+
+        {% if course_data %}
+            <div class="row g-4 mt-2">
+                {% for item in course_data %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm course-card">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold text-dark mb-2">{{ item.course.title }}</h5>
+                            <div class="mb-4">
+                                <span class="badge bg-secondary me-2">{{ item.course.content_type }}</span>
+                                <span class="badge bg-danger rounded-pill shadow-sm"><i class="bi bi-fire"></i> 待攻克错题: {{ item.mistake_count }} 题</span>
+                            </div>
+
+                            <div class="mt-auto d-flex justify-content-between gap-2">
+                                <a href="/view_mistakes/{{ item.course.id }}" class="btn btn-outline-primary w-50 fw-bold shadow-sm">
+                                    <i class="bi bi-eye"></i> 查析错题
+                                </a>
+                                <a href="/redo_mistakes/{{ item.course.id }}" class="btn btn-warning w-50 fw-bold shadow-sm">
+                                    <i class="bi bi-pencil-square"></i> 专项重做
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="col-12 text-center py-5 mt-4">
+                <i class="bi bi-award text-warning display-1"></i>
+                <h3 class="mt-3 text-muted">太棒了！错题本空空如也！</h3>
+                <p class="text-muted">继续保持良好的学习状态哦~</p>
+                <a href="/" class="btn btn-primary mt-3 px-4">去学习新课程</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
